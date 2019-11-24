@@ -43,8 +43,8 @@ def format_data_y(datafile):
 # If not, parse the original dataset from scratch
 def load_data():
     import os
-    if os.path.isfile(config_info['data_folder'] + 'data_har.npz') == True:
-        data = np.load(config_info['data_folder'] + 'data_har.npz')
+    if os.path.isfile(os.path.join(config_info['data_folder'], 'data_har.npz')) == True:
+        data = np.load(os.path.join(config_info['data_folder'], 'data_har.npz'))
         X_train = data['X_train']
         Y_train = data['Y_train']
         X_test = data['X_test']
