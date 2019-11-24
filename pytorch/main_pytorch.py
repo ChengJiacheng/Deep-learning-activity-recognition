@@ -10,6 +10,7 @@ import network as net
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.optim import lr_scheduler
 import torch.optim as optim
 from config import config_info
 
@@ -18,7 +19,7 @@ DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 result = []
 
 
-def train(model, optimizer, train_loader, test_loader):
+def train(model, optimizer, scheduler, train_loader, test_loader):
     n_batch = len(train_loader.dataset) // config_info['batch_size']
     criterion = nn.CrossEntropyLoss()
 
@@ -39,10 +40,12 @@ def train(model, optimizer, train_loader, test_loader):
             _, predicted = torch.max(output.data, 1)
             total += target.size(0)
             correct += (predicted == target).sum()
+            
+        scheduler.step()
 
-            if index % 20 == 0:
-                print('Epoch: [{}/{}], Batch: [{}/{}], loss:{:.4f}'.format(e + 1, config_info['epoch'], index + 1, n_batch,
-                                                                           loss.item()))
+#            if index % 20 == 0:
+#                print('Epoch: [{}/{}], Batch: [{}/{}], loss:{:.4f}'.format(e + 1, config_info['epoch'], index + 1, n_batch,
+#                                                                           loss.item()))
         acc_train = float(correct) * 100.0 / \
             (config_info['batch_size'] * n_batch)
         print(
@@ -85,12 +88,14 @@ def plot():
 
 if __name__ == '__main__':
     torch.manual_seed(10)
+    milestones = [50,100]
+    gamma = 0.1
     train_loader, test_loader = data_preprocess.load(
         batch_size=config_info['batch_size'])
     model = net.Network().to(DEVICE)
-    optimizer = optim.SGD(params=model.parameters(
-    ), lr=config_info['lr'], momentum=config_info['momemtum'])
-    train(model, optimizer, train_loader, test_loader)
+    optimizer = optim.SGD(params=model.parameters(), lr=config_info['lr'], momentum=config_info['momemtum'])
+    scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=gamma)
+    train(model, optimizer, scheduler, train_loader, test_loader)
     result = np.array(result, dtype=float)
     np.savetxt(config_info['result_file'], result, fmt='%.2f', delimiter=',')
     plot()

@@ -21,15 +21,17 @@ class Network(nn.Module):
             nn.MaxPool2d(kernel_size=(1, 2), stride=2)
         )
         self.fc1 = nn.Sequential(
-            nn.Linear(in_features=64 * 26, out_features=1000),
+            nn.Linear(in_features=64 * 26, out_features=512),
+            nn.Dropout(0.5),
             nn.ReLU()
         )
         self.fc2 = nn.Sequential(
-            nn.Linear(in_features=1000, out_features=500),
-            nn.ReLU()
+#            nn.Linear(in_features=512, out_features=128),
+#            nn.Dropout(0.5),
+#            nn.ReLU()
         )
         self.fc3 = nn.Sequential(
-            nn.Linear(in_features=500, out_features=6)
+            nn.Linear(in_features=512, out_features=6)
         )
 
     def forward(self, x):
