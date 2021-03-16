@@ -14,7 +14,12 @@ from torch.optim import lr_scheduler
 import torch.optim as optim
 from config import config_info
 
-
+import argparse
+import pprint
+_utils_pp = pprint.PrettyPrinter()
+def pprint(x):
+    _utils_pp.pprint(x)
+    
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 result = []
 
@@ -28,9 +33,13 @@ def train(model, optimizer, scheduler, train_loader, test_loader):
         correct, total_loss = 0, 0
         total = 0
         for index, (sample, target) in enumerate(train_loader):
-            sample, target = sample.to(
-                DEVICE).float(), target.to(DEVICE).long()
-            sample = sample.view(-1, 9, 1, 128)
+            sample, target = sample.to(DEVICE).float(), target.to(DEVICE).long()
+            if args.classifier == "CNN":
+#                print(sample.shape)
+                sample = sample.view(-1, 9, 1, 128)
+            elif args.classifier == "RNN":
+                sample = sample.view(-1, 9, 1, 128)
+                
             output = model(sample)
             loss = criterion(output, target)
             optimizer.zero_grad()
@@ -87,7 +96,13 @@ def plot():
 
 
 if __name__ == '__main__':
-    torch.manual_seed(10)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_epoch', type=int, default=9)
+    parser.add_argument('--RNN', default='RNN', choices=['CNN', 'RNN'])
+
+    args = parser.parse_args()
+
+    torch.manual_seed(41)
     milestones = [50,100]
     gamma = 0.1
     train_loader, test_loader = data_preprocess.load(
